@@ -1,8 +1,8 @@
 MCU = atmega328p
 FREQUENCE_CPU = 16000000UL
 BAUD_RATE = 115200 # Pour la synchronisation des cycles d'envoie/reception
-#PORT_PHYSIQUE = /dev/tty.usbserial-110
-PORT_PHYSIQUE = /dev/ttyUSB0
+PORT_PHYSIQUE = /dev/tty.usbserial-10
+# PORT_PHYSIQUE = /dev/ttyUSB0
 NAME = main
 
 all: hex flash

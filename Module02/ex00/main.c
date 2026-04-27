@@ -3,9 +3,8 @@ trouver le port : 'ls/dev/tty.*'
 		--> /dev/tty.usbserial-110
 Ouvrir le port serie avec 'screen' avec un baudrate de 115200
 	 - 'screen /dev/tty.usbserial-110 115200'
-	 ou 'screen /dev/cu.usbserial-110 115200'
 Exit screen:
-	 - Ctrl+A and K
+	 - Ctrl+A and \
 */
 
 
@@ -16,8 +15,10 @@ Exit screen:
 #include <avr/io.h>
 #include <util/delay.h>
 
-#define UBBR_VALUE ( ( F_CPU / (16UL * UART_BAUDRATE) ) -1 )
-// #define UBBR_VALUE ( ( F_CPU / (16 * UART_BAUDRATE) ) -1 )
+#define UBRR_VALUE ( ( F_CPU / (16UL * UART_BAUDRATE) ) )
+// #define UBRR_VALUE 8
+
+
 /*
 	[ BAUDRATE Formula ]
 	(p.182 Table 20-1. Equations for Calculating Baud Rate Register Setting)
@@ -33,6 +34,7 @@ Asynchronous Normal Mode (U2Xn = 0):
 void	uart_tx(char c) {
 	// Attend que le registre UDR0 soit vide (poll via UDRE0 = 1)
 	// Sinon Risque ecraser un char en cours d'envoie
+	// p.186
 	while (!(UCSR0A & (1 << UDRE0)));
 	UDR0 = c; // Ecrit le char sur le registre pour que UART le transmette
 }
@@ -56,9 +58,11 @@ void	uart_init(void) {
 				UPM01  + UPM00  = 0 0	-> Pas Parite
 				USBS0           = 0		-> Nbr 'stop bit': 1
 	*/
+	// int UBRR_VALUE = (16000000 / (16*115200));
+
 	// Set baud rate  (p.185)
-	UBRR0H = (unsigned char)(UBBR_VALUE>>8);
-	UBRR0L = (unsigned char)UBBR_VALUE;
+	UBRR0H = (unsigned char)(UBRR_VALUE>>8);
+	UBRR0L = (unsigned char)UBRR_VALUE;
 	//Enable receiver and transmitter */
 	UCSR0B = (1 << RXEN0)|(1 << TXEN0);
 	// Set frame format: 8 bits, 1 stop bit
@@ -69,12 +73,12 @@ void	uart_init(void) {
 int	main(void){
 
 	char c = 'Z';
-	DDRB |= (1 << PB1);
+	// DDRB |= (1 << PB1);
 
 	uart_init();
 	while(1){
 		uart_tx(c);
-		PORTB ^= (1 << PB1);
+		// PORTB ^= (1 << PB1);
 		_delay_ms(1000); //1 sec = Frequence 1Hz 😁
 	}
 
